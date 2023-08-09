@@ -1,28 +1,62 @@
+const { chromium } = require('playwright')
 const students = require('../data/students')
 const courses = require('./courses.js')
-const { chromium } = require('playwright')
+const courseProcessFilter = require('./courseFilter.js')
 
-const login = async (link, account, psw) => {
+const login = async (link, account, psw, executablePath) => {
   const browser = await chromium.launch({ 
     headless: false,
     slowMo: 500,
-    executablePath: '/Users/yym/Desktop/Google Chrome.app/Contents/MacOS/Google Chrome'
-    // executablePath: 'C:/Users/cnic/AppData/Local/Google/Chrome/Application/chrome.exe' 
+    // executablePath: '/Users/yym/Desktop/Google Chrome.app/Contents/MacOS/Google Chrome'
+    executablePath: executablePath || 'C:/Users/cnic/AppData/Local/Google/Chrome/Application/chrome.exe' 
   });
 
   const context = await browser.newContext()
   // Create pages, interact with UI elements, assert values
   const page = await browser.newPage();
+
+  // // 加载存储状态
+  // let storageState = JSON.parse(await fs.readFile('path/to/storage_' + account + '.json'));
+  // await context.storageState(storageState)
+
+  // 加载之前保存的存储状态
+  const savedStorageState = JSON.parse(await fs.readFile('storage-state_' + account + '.json', 'utf-8'));
+  await context.setStorageState(savedStorageState);
+  
   // 打开登录页
   await page.goto(link);
 
   switch (link) {
+    // 国开
+    case 'https://menhu.pt.ouchn.cn/':
+      await page.getByPlaceholder('请输入登录名').click();
+      await page.getByPlaceholder('请输入登录名').fill(account);
+      await page.getByPlaceholder('请输入登录密码').click();
+      await page.getByPlaceholder('请输入登录密码').fill(psw);
+      await page.getByPlaceholder('请输入验证码').click();
+      await page.getByPlaceholder('请输入验证码').fill('');
+      await page.getByRole('button', { name: '登录' }).click();
+
+      
+      // 监听页面路径是否改变（是否已登录并进入待学习课程页）
+      page.on('framenavigated', async (frame) => {
+        const newURL = await frame.url();
+        console.log('URL 国开changed:', newURL);
+
+        // 在验证通过且URL变化时
+        if(newURL === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
+          const page1Promise = page.waitForEvent('popup');
+          await courseProcessFilter(page, page1Promise, link)
+        }
+      });
+      break
     // 郑州航空工业管理学院继续教育学院 验证码输入
     case 'http://zzia.jxjy.chaoxing.com':
       await page.fill('#userName', account)
       await page.fill('#passWord', psw)
       await page.fill('#verifyCode', '')
       await page.click('.loginBtn')
+      // TODO 筛选课程，观看视频
       break
 
     // 河南大学 验证码输入  =======没有未完成的视频
@@ -127,7 +161,16 @@ const login = async (link, account, psw) => {
   // } else {
   //   await page.click(loginEl)
   // }
-  await context.storageState({ path: 'auth.json' });
+  // await context.storageState({ path: 'auth.json' });
+
+  // 关闭浏览器前保存存储状态
+  const storageState = await context.storageState();
+  // 将存储状态保存到文件中
+  await fs.writeFile('path/to/storage_' + account + '.json', JSON.stringify(storageState));
+  // 保存存储状态
+  // const storageState = await context.storageState();
+  // await fs.writeFile('storage-state_' + account + '.json', JSON.stringify(storageState));
+  
   // await browser.close();
 }
 

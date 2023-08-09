@@ -26,13 +26,14 @@ app.post('/api/login', (req, res) => {
   });
 
   req.on('end', () => {
+    // 在这里处理POST请求的参数
+    // postParams 中包含解析后的参数对象
     let postParams, link, account, psw
     if(typeof body !== 'string') {
       // ???
       postParams = new URLSearchParams(body);
       [link, account, psw] = [postParams.get('link'), postParams.get('account'), postParams.get('psw')]
     } else {
-      // debugger
       postParams = JSON.parse(body)
       link = postParams.link
       account = postParams.account
@@ -40,9 +41,9 @@ app.post('/api/login', (req, res) => {
     }
     console.log(typeof postParams, '---params', body, '=====', link, account, psw);
     
+    // 调用登录方法
     loginFun(link, account, psw) 
-    // 在这里处理POST请求的参数
-    // postParams 中包含解析后的参数对象
+
     res.send({
       link,
       account, 
