@@ -1,4 +1,5 @@
 const { chromium } = require('playwright')
+const fs = require('fs')
 const students = require('../data/students')
 const courses = require('./courses.js')
 const courseProcessFilter = require('./courseFilter.js')
@@ -7,48 +8,88 @@ const login = async (link, account, psw, executablePath) => {
   const browser = await chromium.launch({ 
     headless: false,
     slowMo: 500,
-    // executablePath: '/Users/yym/Desktop/Google Chrome.app/Contents/MacOS/Google Chrome'
-    executablePath: executablePath || 'C:/Users/cnic/AppData/Local/Google/Chrome/Application/chrome.exe' 
+    executablePath: executablePath ||  '/Users/yym/Desktop/Google Chrome.app/Contents/MacOS/Google Chrome'
+    // executablePath: executablePath || 'C:/Users/cnic/AppData/Local/Google/Chrome/Application/chrome.exe' 
   });
 
   const context = await browser.newContext()
   // Create pages, interact with UI elements, assert values
-  const page = await browser.newPage();
+  let page;
+  const filePath = `path_cookie/${account}_cookie.json`;
+
+  if (fs.existsSync(filePath)) {
+    // File exists at the specified path
+    console.log('File exists');
+    page = await browser.newPage(storage_state=`path_cookie/${account}_cookie.json`);
+  } else {
+    // File does not exist at the specified path
+    console.log('File does not exist');
+    page = await browser.newPage()
+    await page.goto(link);
+  }
 
   // // 加载存储状态
   // let storageState = JSON.parse(await fs.readFile('path/to/storage_' + account + '.json'));
   // await context.storageState(storageState)
 
   // 加载之前保存的存储状态
-  const savedStorageState = JSON.parse(await fs.readFile('storage-state_' + account + '.json', 'utf-8'));
-  await context.setStorageState(savedStorageState);
+  // const savedStorageState = JSON.parse(await fs.readFile('storage-state_' + account + '.json', 'utf-8'));
+  // await context.setStorageState(savedStorageState);
   
   // 打开登录页
-  await page.goto(link);
 
   switch (link) {
     // 国开
     case 'https://menhu.pt.ouchn.cn/':
-      await page.getByPlaceholder('请输入登录名').click();
-      await page.getByPlaceholder('请输入登录名').fill(account);
-      await page.getByPlaceholder('请输入登录密码').click();
-      await page.getByPlaceholder('请输入登录密码').fill(psw);
-      await page.getByPlaceholder('请输入验证码').click();
-      await page.getByPlaceholder('请输入验证码').fill('');
-      await page.getByRole('button', { name: '登录' }).click();
-
-      
-      // 监听页面路径是否改变（是否已登录并进入待学习课程页）
+      // await page.getByPlaceholder('请输入登录名').click();
+      // await page.getByPlaceholder('请输入登录名').fill(account);
+      // await page.getByPlaceholder('请输入登录密码').click();
+      // await page.getByPlaceholder('请输入登录密码').fill(psw);
+      // await page.getByPlaceholder('请输入验证码').click();
+      // await page.getByPlaceholder('请输入验证码').fill('');
+      // await page.getByRole('button', { name: '登录' }).click();
+      await page.goto('https://menhu.pt.ouchn.cn/site/ouchnPc/index');
+    
+      // 监听页面路径是否改变（是否已登录并进入待学习课程页） 
       page.on('framenavigated', async (frame) => {
         const newURL = await frame.url();
         console.log('URL 国开changed:', newURL);
-
+        // await page.goto('https://iam.pt.ouchn.cn/am/UI/Login?realm=%2F&service=initService&goto=https%3A%2F%2Fiam.pt.ouchn.cn%2Fam%2Foauth2%2Fauthorize%3Fservice%3DinitService%26response_type%3Dcode%26client_id%3D345fcbaf076a4f8a%26scope%3Dall%26redirect_uri%3Dhttps%253A%252F%252Fmenhu.pt.ouchn.cn%252Fouchnapp%252Fwap%252Flogin%252Findex%26decision%3DAllow');
+        
         // 在验证通过且URL变化时
-        if(newURL === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
-          const page1Promise = page.waitForEvent('popup');
-          await courseProcessFilter(page, page1Promise, link)
+        if(newURL.includes('https://iam.pt.ouchn.cn/am/UI/Login')) {
+          await page.locator('p').filter({ hasText: '请输入登录名' }).click();
+          await page.getByPlaceholder('请输入登录名').click();
+          await page.getByPlaceholder('请输入登录名').fill(account);
+          await page.getByPlaceholder('请输入登录密码').click();
+          await page.getByPlaceholder('请输入登录密码').fill(psw);
+          await page.getByPlaceholder('请输入验证码').click();
+          await page.getByPlaceholder('请输入验证码').fill('');
+          await page.getByRole('button', { name: '登录' }).click();
+          context.storage_state(path=`path_cookie/${account}_cookie.json`) // 保存storage_state 到JSON文件
         }
+          const page1Promise = page.waitForEvent('popup');
+          // await courseProcessFilter(page, page1Promise, link)
+          // TODO点击去掉弹框
+          await page.locator('li').filter({ hasText: '管理思想史 课程代码：53720 | 课程状态： 正在进行 | 开课时间： 2023年02月05日 选课学生：704 人 | 资料：0 个 | 形考作业：3/3' }).getByRole('progressbar').click();
+          const page1 = await page1Promise;
+          await page1.getByRole('checkbox').check();
+        
       });
+
+      
+      // // 监听页面路径是否改变（是否已登录并进入待学习课程页）
+      // page.on('framenavigated', async (frame) => {
+      //   const newURL = await frame.url();
+      //   console.log('URL 国开changed:', newURL);
+
+      //   // 在验证通过且URL变化时
+      //   if(newURL === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
+      //     const page1Promise = page.waitForEvent('popup');
+      //     await courseProcessFilter(page, page1Promise, link)
+      //   }
+      // });
+
       break
     // 郑州航空工业管理学院继续教育学院 验证码输入
     case 'http://zzia.jxjy.chaoxing.com':
@@ -164,9 +205,9 @@ const login = async (link, account, psw, executablePath) => {
   // await context.storageState({ path: 'auth.json' });
 
   // 关闭浏览器前保存存储状态
-  const storageState = await context.storageState();
+  // const storageState = await context.storageState();
   // 将存储状态保存到文件中
-  await fs.writeFile('path/to/storage_' + account + '.json', JSON.stringify(storageState));
+  // await fs.writeFile('path/to/storage_' + account + '.json', JSON.stringify(storageState));
   // 保存存储状态
   // const storageState = await context.storageState();
   // await fs.writeFile('storage-state_' + account + '.json', JSON.stringify(storageState));
