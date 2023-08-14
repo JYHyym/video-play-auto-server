@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "playwright": "^1.36.2",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "playwright": "^1.36.2"
   }
 }
