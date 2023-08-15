@@ -55,7 +55,7 @@ const login = async (link, account, psw, executablePath) => {
         // 检查是否有弹框，有则关闭
         const closeSelector = 'body > div:nth-child(1) > div.ouchnPc_index_advertisement > img.cloneImg'
         const nodeClose = await page.$(closeSelector)
-        console.log('nodeClose：', nodeClose)
+        console.log('nodeClo/se：', nodeClose)
         if(nodeClose) {
           await page.click(closeSelector)
         }
