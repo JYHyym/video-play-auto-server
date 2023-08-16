@@ -16,7 +16,7 @@ const login = async (link, account, psw, executablePath) => {
   // Create pages, interact with UI elements, assert values
   const [page] = browser.pages()
 
-  console.log('page:===>', page)
+  // console.log('page:===>', page)
     // await page.goto(link)
     switch (link) {
       // 国开
@@ -48,14 +48,31 @@ const login = async (link, account, psw, executablePath) => {
           await page.getByPlaceholder('请输入验证码').click();
           await page.getByPlaceholder('请输入验证码').fill('');
           await page.getByRole('button', { name: '登录' }).click();
-        } 
+        } else if(newURL.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')){
+          return {
+            msg: '账号登录成功！',
+            code: 1
+          }
+        }
 
-        // 进入课程页
-        await page.waitForURL('https://menhu.pt.ouchn.cn/site/ouchnPc/index')
+        // // 进入课程页
+        // try {
+        //   const currentUrl = await page.url()
+        //   if(currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
+        //     return {
+        //       msg: '账号登录成功！',
+        //       code: 1
+        //     }
+        //   }
+        // } catch (error) {
+        //   console.log('pagewaitForURL error:===>', error)
+        // }
+
         // 检查是否有弹框，有则关闭
         const closeSelector = 'body > div:nth-child(1) > div.ouchnPc_index_advertisement > img.cloneImg'
         const nodeClose = await page.$(closeSelector)
-        console.log('nodeClo/se：', nodeClose)
+        console.log('nodeClose：', nodeClose)
+        
         if(nodeClose) {
           await page.click(closeSelector)
         }

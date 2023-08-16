@@ -25,7 +25,7 @@ app.post('/api/login', (req, res) => {
     body += chunk;
   });
 
-  req.on('end', () => {
+  req.on('end', async () => {
     // 在这里处理POST请求的参数
     // postParams 中包含解析后的参数对象
     let postParams, link, account, psw
@@ -42,14 +42,14 @@ app.post('/api/login', (req, res) => {
     console.log(typeof postParams, '---params', body, '=====', link, account, psw);
     
     // 调用登录方法
-    loginFun(link, account, psw) 
-
-    res.send({
+    const resLogin = await loginFun(link, account, psw) 
+    console.log('登录res: ===>', resLogin)
+    await res.send({
       link,
       account, 
       psw, 
-      msg: '调用成功',
-      code: 1
+      msg: resLogin?.msg,
+      code: resLogin?.code
     });
   });
 });
