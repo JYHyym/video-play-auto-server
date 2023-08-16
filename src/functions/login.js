@@ -3,26 +3,27 @@ const fs = require('fs')
 const path = require('path')
 const students = require('../data/students')
 const courses = require('./courses.js')
-const courseProcessFilter = require('./courseFilter.js')
+const { courseList } = require('./courseFilter.js')
 
-const login = async (link, account, psw, executablePath) => {
-  const browser = await chromium.launchPersistentContext(path.resolve('.../../userDataDir'), { 
+let $browser,$page
+(async () => {
+  $browser = await chromium.launchPersistentContext(path.resolve('.../../userDataDir'), { 
     headless: false,
     slowMo: 500,
     // executablePath: executablePath ||  '/Users/yym/Desktop/Google Chrome.app/Contents/MacOS/Google Chrome'
     // executablePath: executablePath || 'C:/Users/cnic/AppData/Local/Google/Chrome/Application/chrome.exe' 
   });
+  $page = $browser.pages()[0]
+})() 
 
-  // Create pages, interact with UI elements, assert values
-  const [page] = browser.pages()
-
+const login = async (link, account, psw, executablePath) => {
   // console.log('page:===>', page)
     // await page.goto(link)
     switch (link) {
       // 国开
       case 'https://menhu.pt.ouchn.cn/':
         
-        await page.goto('https://menhu.pt.ouchn.cn/site/ouchnPc/index');
+        await $page.goto('https://menhu.pt.ouchn.cn/site/ouchnPc/index');
 
         // 监听路由变化
         // await page.on('framenavigated', async (frame) => {
@@ -39,21 +40,68 @@ const login = async (link, account, psw, executablePath) => {
     
         // })
         // 获取当前url,为登录时则进入登录操作，如已登录则继续其他操作
-        const newURL = await page.url()
+        const newURL = await $page.url()
+        console.log(newURL, '0000000000')
         if(newURL.includes('https://iam.pt.ouchn.cn/am/UI/Login')) {
-          await page.getByPlaceholder('请输入登录名').click();
-          await page.getByPlaceholder('请输入登录名').fill(account);
-          await page.getByPlaceholder('请输入登录密码').click();
-          await page.getByPlaceholder('请输入登录密码').fill(psw);
-          await page.getByPlaceholder('请输入验证码').click();
-          await page.getByPlaceholder('请输入验证码').fill('');
-          await page.getByRole('button', { name: '登录' }).click();
-        } else if(newURL.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')){
+          await $page.getByPlaceholder('请输入登录名').click();
+          await $page.getByPlaceholder('请输入登录名').fill(account);
+          await $page.getByPlaceholder('请输入登录密码').click();
+          await $page.getByPlaceholder('请输入登录密码').fill(psw);
+          await $page.getByPlaceholder('请输入验证码').click();
+          await $page.getByPlaceholder('请输入验证码').fill('');
+          await $page.getByRole('button', { name: '登录' }).click();
+          console.log(newURL, '1111')
+
+          // const currentUrl = await $page.url()
+          // if(currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
+          //   const { courseElList, courseListInfo } = await courseList($page, link)
+          //   console.log('/login====>',{ courseElList, courseListInfo, msg: '账号登录成功！',code: 1 })
+          //   return {
+          //     courseElList,
+          //     courseListInfo,
+          //     msg: '账号登录成功！',
+          //     code: 1
+          //   }
+          // }
+          // console.log(currentUrl, '22222')
+          await $page.on('framenavigated', async (frame) => {
+            const mynewURL = await frame.url();
+            if(mynewURL.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
+              const { courseElList, courseListInfo } = await courseList($page, link)
+              console.log('/login====>',{ courseElList,courseListInfo,msg: '账号登录成功！',code: 1 })
+              return {
+                courseElList,
+                courseListInfo,
+                msg: '账号登录成功！',
+                code: 1
+              }
+            }
+          })
+        } else{
+          const { courseElList, courseListInfo } = await courseList($page, link)
+          console.log('/index====>',{
+            courseElList,
+            courseListInfo,
+            msg: '账号登录成功！',
+            code: 1
+          })
           return {
+            courseElList,
+            courseListInfo,
             msg: '账号登录成功！',
             code: 1
           }
         }
+
+        // const currentUrl = await $page.url()
+        // if(currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
+        //   const courseElList = await courseList()
+        //   return {
+        //     courseElList,
+        //     msg: '账号登录成功！',
+        //     code: 1
+        //   }
+        // }
 
         // // 进入课程页
         // try {
@@ -68,62 +116,62 @@ const login = async (link, account, psw, executablePath) => {
         //   console.log('pagewaitForURL error:===>', error)
         // }
 
-        // 检查是否有弹框，有则关闭
-        const closeSelector = 'body > div:nth-child(1) > div.ouchnPc_index_advertisement > img.cloneImg'
-        const nodeClose = await page.$(closeSelector)
-        console.log('nodeClose：', nodeClose)
+        // // 检查是否有弹框，有则关闭
+        // const closeSelector = 'body > div:nth-child(1) > div.ouchnPc_index_advertisement > img.cloneImg'
+        // const nodeClose = await page.$(closeSelector)
+        // console.log('nodeClose：', nodeClose)
         
-        if(nodeClose) {
-          await page.click(closeSelector)
-        }
+        // if(nodeClose) {
+        //   await page.click(closeSelector)
+        // }
 
-        if(await page.url() === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
-          const page1Promise = page.waitForEvent('popup');
-          // await courseProcessFilter(page, page1Promise, link)
-          // 点击某节课程，跳转页面
-          await page.locator('li').filter({ hasText: '管理思想史 课程代码：53720 | 课程状态： 正在进行 | 开课时间： 2023年02月05日 选课学生：704 人 | 资料：0 个 | 形考作业：3/3' }).getByRole('progressbar').click();
-          const page1 = await page1Promise;
-          await page1.getByRole('checkbox').check();
-        }
+        // if(await page.url() === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
+        //   const page1Promise = page.waitForEvent('popup');
+        //   // await courseProcessFilter(page, page1Promise, link)
+        //   // 点击某节课程，跳转页面
+        //   await page.locator('li').filter({ hasText: '管理思想史 课程代码：53720 | 课程状态： 正在进行 | 开课时间： 2023年02月05日 选课学生：704 人 | 资料：0 个 | 形考作业：3/3' }).getByRole('progressbar').click();
+        //   const page1 = await page1Promise;
+        //   await page1.getByRole('checkbox').check();
+        // }
        
         break
       // 郑州航空工业管理学院继续教育学院 验证码输入
       case 'http://zzia.jxjy.chaoxing.com':
-        await page.fill('#userName', account)
-        await page.fill('#passWord', psw)
-        await page.fill('#verifyCode', '')
-        await page.click('.loginBtn')
+        await $page.fill('#userName', account)
+        await $page.fill('#passWord', psw)
+        await $page.fill('#verifyCode', '')
+        await $page.click('.loginBtn')
         // TODO 筛选课程，观看视频
         break
   
       // 河南大学 验证码输入  =======没有未完成的视频
       case 'https://jjad.henu.edu.cn/np/#/login': 
-        await page.frameLocator('iframe').getByPlaceholder('用户名').click();
-        await page.frameLocator('iframe').getByPlaceholder('用户名').fill(account);
-        await page.frameLocator('iframe').getByPlaceholder('密码').click();
-        await page.frameLocator('iframe').getByPlaceholder('密码').fill(psw);
-        await page.frameLocator('iframe').getByPlaceholder('输入验证码').click();
-        await page.frameLocator('iframe').getByPlaceholder('输入验证码').fill('');
-        await page.frameLocator('iframe').getByRole('button', { name: '登录' }).click();
+        await $page.frameLocator('iframe').getByPlaceholder('用户名').click();
+        await $page.frameLocator('iframe').getByPlaceholder('用户名').fill(account);
+        await $page.frameLocator('iframe').getByPlaceholder('密码').click();
+        await $page.frameLocator('iframe').getByPlaceholder('密码').fill(psw);
+        await $page.frameLocator('iframe').getByPlaceholder('输入验证码').click();
+        await $page.frameLocator('iframe').getByPlaceholder('输入验证码').fill('');
+        await $page.frameLocator('iframe').getByRole('button', { name: '登录' }).click();
         break
   
       // 郑州商贸旅游职业学院 滑块校验
       case 'http://smlyzyxy.hnzkw.org.cn/':
-        await page.getByPlaceholder('请输入账号').click();
-        await page.getByPlaceholder('请输入账号').fill(account);
-        await page.getByPlaceholder('请输入密码').click();
-        await page.getByPlaceholder('请输入密码').fill(psw);
-        await page.locator('form').getByText('登 录').click(); 
+        await $page.getByPlaceholder('请输入账号').click();
+        await $page.getByPlaceholder('请输入账号').fill(account);
+        await $page.getByPlaceholder('请输入密码').click();
+        await $page.getByPlaceholder('请输入密码').fill(psw);
+        await $page.locator('form').getByText('登 录').click(); 
   
         // 视频在chromium中无法播放 感谢观看此视频弹框
         // 监听URL变化
-        page.on('framenavigated', async (frame) => {
+        $page.on('framenavigated', async (frame) => {
           const newURL = await frame.url();
           console.log('URL changed:', newURL);
   
           // 在URL变化时（滑块验证通过）
           if(newURL === 'http://smlyzyxy.hnzkw.org.cn/#/index') {
-            await courses(page, link)
+            await courses($page, link)
           }
         });
        
@@ -131,21 +179,21 @@ const login = async (link, account, psw, executablePath) => {
   
       // 河南艺术职业学院 
       case 'http://hnys.hnzkw.org.cn/':
-        await page.getByPlaceholder('请输入账号').click();
-        await page.getByPlaceholder('请输入账号').fill(account);
-        await page.getByPlaceholder('请输入密码').click();
-        await page.getByPlaceholder('请输入密码').fill(psw);
-        await page.locator('form').getByText('登 录').click();
+        await $page.getByPlaceholder('请输入账号').click();
+        await $page.getByPlaceholder('请输入账号').fill(account);
+        await $page.getByPlaceholder('请输入密码').click();
+        await $page.getByPlaceholder('请输入密码').fill(psw);
+        await $page.locator('form').getByText('登 录').click();
         // 视频在chromium中无法播放 感谢观看此视频弹框
         break
   
       // 长春中医药大学
       case 'https://ccutcm.ls365.net/':
-        await page.getByPlaceholder('账号').click();
-        await page.getByPlaceholder('账号').fill(account);
-        await page.getByPlaceholder('密码').click();
-        await page.getByPlaceholder('密码').fill(psw);
-        await page.getByRole('link', { name: '登 录' }).click();
+        await $page.getByPlaceholder('账号').click();
+        await $page.getByPlaceholder('账号').fill(account);
+        await $page.getByPlaceholder('密码').click();
+        await $page.getByPlaceholder('密码').fill(psw);
+        await $page.getByRole('link', { name: '登 录' }).click();
         break
   
       // 西安工业大学
@@ -195,4 +243,4 @@ const login = async (link, account, psw, executablePath) => {
   // await browser.close();
 }
 
-module.exports = login
+module.exports = { login, $browser, $page }

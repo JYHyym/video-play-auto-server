@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-const loginFun = require('./functions/login'); // 导入fun方法
+const { login: loginFun, login } = require('./functions/login'); // 导入fun方法
 
 // 添加中间件以允许跨域请求
 app.use((req, res, next) => {
@@ -42,15 +42,29 @@ app.post('/api/login', (req, res) => {
     console.log(typeof postParams, '---params', body, '=====', link, account, psw);
     
     // 调用登录方法
-    const resLogin = await loginFun(link, account, psw) 
-    console.log('登录res: ===>', resLogin)
-    await res.send({
-      link,
-      account, 
-      psw, 
-      msg: resLogin?.msg,
-      code: resLogin?.code
-    });
+    // const resLogin = await loginFun(link, account, psw) 
+    
+    loginFun(link, account, psw).then(async(resLogin) => {
+      console.log('登录res: ===>', resLogin)
+      await res.send({
+        link,
+        account, 
+        psw, 
+        courseElList: resLogin?.courseElList,
+        courseListInfo: resLogin?.courseListInfo,
+        msg: resLogin?.msg,
+        code: resLogin?.code
+      });
+    })
+    // await res.send({
+    //   link,
+    //   account, 
+    //   psw, 
+    //   courseList: resLogin?.courseList,
+    //   courseListInfo: resLogin?.courseListInfo,
+    //   msg: resLogin?.msg,
+    //   code: resLogin?.code
+    // });
   });
 });
 
