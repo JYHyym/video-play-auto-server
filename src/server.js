@@ -1,16 +1,15 @@
 const express = require('express');
 const app = express();
+const timeout = require('connect-timeout')
 
 const { login: loginFun, login } = require('./functions/login'); // 导入fun方法
 
-// 添加中间件以允许跨域请求
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*'); // 允许所有来源的请求
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE'); // 允许的HTTP方法
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type'); // 允许的请求头
-  next();
-});
-
+  next()
+})
 // app.get('/api/login', (req, res) => {
 //   console.log('-----:',req, res)
 //   // loginFun(); // 调用fun方法
@@ -39,32 +38,26 @@ app.post('/api/login', (req, res) => {
       account = postParams.account
       psw = postParams.psw
     }
-    console.log(typeof postParams, '---params', body, '=====', link, account, psw);
-    
-    // 调用登录方法
-    // const resLogin = await loginFun(link, account, psw) 
-    
-    loginFun(link, account, psw).then(async(resLogin) => {
+    // console.log(typeof postParams, '---params', body, '=====', link, account, psw);
+    try {
+      const resLogin = await loginFun(link, account, psw) 
+
+    // if(resLogin?.courseListInfo) {
       console.log('登录res: ===>', resLogin)
-      await res.send({
+      res.send({
         link,
         account, 
         psw, 
-        courseElList: resLogin?.courseElList,
+        courseList: resLogin?.courseList,
         courseListInfo: resLogin?.courseListInfo,
         msg: resLogin?.msg,
         code: resLogin?.code
-      });
-    })
-    // await res.send({
-    //   link,
-    //   account, 
-    //   psw, 
-    //   courseList: resLogin?.courseList,
-    //   courseListInfo: resLogin?.courseListInfo,
-    //   msg: resLogin?.msg,
-    //   code: resLogin?.code
-    // });
+      })
+    } catch (err) {
+      console.log('执行了res.send',  res.send({msg: 'error', code: 2}))
+    }
+    
+    // }
   });
 });
 

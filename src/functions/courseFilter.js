@@ -28,7 +28,7 @@ const courseList = async ($page, link) => {
         // 检查是否有弹框，有则关闭
         const closeSelector = 'body > div:nth-child(1) > div.ouchnPc_index_advertisement > img.cloneImg'
         const nodeClose = await $page.$(closeSelector)
-        console.log('nodeClose：', nodeClose)
+        // console.log('nodeClose：', nodeClose)
         
         if(nodeClose) {
           await $page.click(closeSelector)
@@ -46,7 +46,7 @@ const courseList = async ($page, link) => {
         .filter({ hasNotText: '100.0%' })
         const filterCount = await courseElList.count()
         let courseListInfo = [] // courseList: [{courseName: '形式与政策', process:'89.0%'}]
-        console.log('filterCount:===>', filterCount, courseElList,await courseElList.count())
+        // console.log('filterCount:===>', filterCount, courseElList,await courseElList.count())
 
         for (let i = 0; i < filterCount; i++) {
           // await courseElList.nth(i).locator('.learning_course').textContent()
@@ -59,7 +59,7 @@ const courseList = async ($page, link) => {
             process: proTextContent.trim().replace(/\n/g, '')
           })
         }
-        console.log('courseListInfo:===>', courseListInfo)
+        // console.log('courseListInfo:===>', courseListInfo)
 
         // const processedCourseListInfo = courseListInfo.map(item => {
         //   const courseName = item.courseName.trim().replace(/\n/g, '')

@@ -17,31 +17,13 @@ let $browser,$page
 })() 
 
 const login = async (link, account, psw, executablePath) => {
-  // console.log('page:===>', page)
-    // await page.goto(link)
     switch (link) {
       // 国开
       case 'https://menhu.pt.ouchn.cn/':
         
         await $page.goto('https://menhu.pt.ouchn.cn/site/ouchnPc/index');
 
-        // 监听路由变化
-        // await page.on('framenavigated', async (frame) => {
-        //   const newURL = await frame.url();
-        //   if(newURL.includes('https://iam.pt.ouchn.cn/am/UI/Login')) {
-        //     await page.getByPlaceholder('请输入登录名').click();
-        //     await page.getByPlaceholder('请输入登录名').fill(account);
-        //     await page.getByPlaceholder('请输入登录密码').click();
-        //     await page.getByPlaceholder('请输入登录密码').fill(psw);
-        //     await page.getByPlaceholder('请输入验证码').click();
-        //     await page.getByPlaceholder('请输入验证码').fill('');
-        //     await page.getByRole('button', { name: '登录' }).click();
-        //   } 
-    
-        // })
-        // 获取当前url,为登录时则进入登录操作，如已登录则继续其他操作
         const newURL = await $page.url()
-        console.log(newURL, '0000000000')
         if(newURL.includes('https://iam.pt.ouchn.cn/am/UI/Login')) {
           await $page.getByPlaceholder('请输入登录名').click();
           await $page.getByPlaceholder('请输入登录名').fill(account);
@@ -50,41 +32,31 @@ const login = async (link, account, psw, executablePath) => {
           await $page.getByPlaceholder('请输入验证码').click();
           await $page.getByPlaceholder('请输入验证码').fill('');
           await $page.getByRole('button', { name: '登录' }).click();
-          console.log(newURL, '1111')
+          // console.log(newURL, '1111')
 
-          // const currentUrl = await $page.url()
-          // if(currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
-          //   const { courseElList, courseListInfo } = await courseList($page, link)
-          //   console.log('/login====>',{ courseElList, courseListInfo, msg: '账号登录成功！',code: 1 })
-          //   return {
-          //     courseElList,
-          //     courseListInfo,
-          //     msg: '账号登录成功！',
-          //     code: 1
-          //   }
-          // }
-          // console.log(currentUrl, '22222')
-          await $page.on('framenavigated', async (frame) => {
-            const mynewURL = await frame.url();
-            if(mynewURL.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
-              const { courseElList, courseListInfo } = await courseList($page, link)
-              console.log('/login====>',{ courseElList,courseListInfo,msg: '账号登录成功！',code: 1 })
-              return {
-                courseElList,
-                courseListInfo,
-                msg: '账号登录成功！',
-                code: 1
-              }
-            }
+          return new Promise((resolve, reject) => {
+            $page.on('framenavigated', async (frame) => {
+              const mynewURL = await frame.url();
+              const currentUrl = await $page.url()
+  
+              if(mynewURL.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index') && currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
+                let courseElList, courseListInfo
+                const res = await courseList($page, link)
+                courseElList = res.courseElList
+                courseListInfo = res.courseListInfo
+                // console.log('/login====>',{ courseElList,courseListInfo,msg: '账号登录成功！',code: 1 })
+                resolve({
+                  courseElList,
+                  courseListInfo,
+                  msg: '账号登录成功！',
+                  code: 1
+                })
+              } 
+            })
           })
+          
         } else{
           const { courseElList, courseListInfo } = await courseList($page, link)
-          console.log('/index====>',{
-            courseElList,
-            courseListInfo,
-            msg: '账号登录成功！',
-            code: 1
-          })
           return {
             courseElList,
             courseListInfo,
@@ -92,48 +64,6 @@ const login = async (link, account, psw, executablePath) => {
             code: 1
           }
         }
-
-        // const currentUrl = await $page.url()
-        // if(currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
-        //   const courseElList = await courseList()
-        //   return {
-        //     courseElList,
-        //     msg: '账号登录成功！',
-        //     code: 1
-        //   }
-        // }
-
-        // // 进入课程页
-        // try {
-        //   const currentUrl = await page.url()
-        //   if(currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
-        //     return {
-        //       msg: '账号登录成功！',
-        //       code: 1
-        //     }
-        //   }
-        // } catch (error) {
-        //   console.log('pagewaitForURL error:===>', error)
-        // }
-
-        // // 检查是否有弹框，有则关闭
-        // const closeSelector = 'body > div:nth-child(1) > div.ouchnPc_index_advertisement > img.cloneImg'
-        // const nodeClose = await page.$(closeSelector)
-        // console.log('nodeClose：', nodeClose)
-        
-        // if(nodeClose) {
-        //   await page.click(closeSelector)
-        // }
-
-        // if(await page.url() === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
-        //   const page1Promise = page.waitForEvent('popup');
-        //   // await courseProcessFilter(page, page1Promise, link)
-        //   // 点击某节课程，跳转页面
-        //   await page.locator('li').filter({ hasText: '管理思想史 课程代码：53720 | 课程状态： 正在进行 | 开课时间： 2023年02月05日 选课学生：704 人 | 资料：0 个 | 形考作业：3/3' }).getByRole('progressbar').click();
-        //   const page1 = await page1Promise;
-        //   await page1.getByRole('checkbox').check();
-        // }
-       
         break
       // 郑州航空工业管理学院继续教育学院 验证码输入
       case 'http://zzia.jxjy.chaoxing.com':
@@ -167,7 +97,7 @@ const login = async (link, account, psw, executablePath) => {
         // 监听URL变化
         $page.on('framenavigated', async (frame) => {
           const newURL = await frame.url();
-          console.log('URL changed:', newURL);
+          // console.log('URL changed:', newURL);
   
           // 在URL变化时（滑块验证通过）
           if(newURL === 'http://smlyzyxy.hnzkw.org.cn/#/index') {
