@@ -1,22 +1,10 @@
-const { chromium } = require('playwright')
 const fs = require('fs')
-const path = require('path')
 const students = require('../data/students')
-const courses = require('./courses.js')
-const { courseList } = require('./courseFilter.js')
+const courses = require('./courses')
+const { courseList } = require('./courseFilter')
+let courseElList, courseListInfo
 
-let $browser,$page
-(async () => {
-  $browser = await chromium.launchPersistentContext(path.resolve('.../../userDataDir'), { 
-    headless: false,
-    slowMo: 500,
-    // executablePath: executablePath ||  '/Users/yym/Desktop/Google Chrome.app/Contents/MacOS/Google Chrome'
-    // executablePath: executablePath || 'C:/Users/cnic/AppData/Local/Google/Chrome/Application/chrome.exe' 
-  });
-  $page = $browser.pages()[0]
-})() 
-
-const login = async (link, account, psw, executablePath) => {
+const login = async ($page, link, account, psw, executablePath) => {
     switch (link) {
       // 国开
       case 'https://menhu.pt.ouchn.cn/':
@@ -40,7 +28,6 @@ const login = async (link, account, psw, executablePath) => {
               const currentUrl = await $page.url()
   
               if(mynewURL.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index') && currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
-                let courseElList, courseListInfo
                 const res = await courseList($page, link)
                 courseElList = res.courseElList
                 courseListInfo = res.courseListInfo
@@ -56,7 +43,10 @@ const login = async (link, account, psw, executablePath) => {
           })
           
         } else{
-          const { courseElList, courseListInfo } = await courseList($page, link)
+          const res = await courseList($page, link)
+          courseElList = res.courseElList
+          courseListInfo = res.courseListInfo
+          
           return {
             courseElList,
             courseListInfo,
@@ -173,4 +163,4 @@ const login = async (link, account, psw, executablePath) => {
   // await browser.close();
 }
 
-module.exports = { login, $browser, $page }
+module.exports = { login, courseElList, courseListInfo }
