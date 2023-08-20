@@ -7,10 +7,10 @@ const courseList = async ($page, link) => {
     // 国开
     case 'https://menhu.pt.ouchn.cn/':
       const currentUrl = await $page.url()
-      console.log('currentUrl,page=>', $page)
+      // console.log('currentUrl,page=>', $page)
       if(await $page.url() === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
         // 检查是否有弹框，有则关闭
-        const closeSelector = 'body > div:nth-child(1) > div.ouchnPc_index_advertisement > img.cloneImg'
+        const closeSelector = 'div.ouchnPc_index_advertisement > img.cloneImg'
         const nodeClose = await $page.$(closeSelector)
         if(nodeClose) {
           await $page.click(closeSelector)
@@ -32,7 +32,7 @@ const courseList = async ($page, link) => {
         // const courseElList = await $page.locator('li')
         // .filter({ hasText: '学习进度' })
         // .filter({ hasNotText: '100.0%' })
-        console.log('courseElList:===>', courseElList)
+        // console.log('courseElList:===>', courseElList)
         const filterCount = await courseElList.count()
         let courseListInfo = [] // courseList: [{courseName: '形式与政策', process:'89.0%'}]
 

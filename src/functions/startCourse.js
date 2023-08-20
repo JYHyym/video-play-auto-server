@@ -5,7 +5,7 @@ const startCourse = async ($page, courseElList, link) => {
   switch (link) {
     // 国开
     case 'https://menhu.pt.ouchn.cn/':
-      console.log('currentUrl', $page)
+      // console.log('currentUrl', $page)
       const currentUrl = await $page.url()
       console.log(currentUrl)
       if(await $page.url() === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
@@ -31,29 +31,60 @@ const startCourse = async ($page, courseElList, link) => {
         //   })
         // }
         const itemCosePageProm = $page.waitForEvent('popup')
-        console.log(await courseElList.nth(0))
+        // console.log(await courseElList.nth(0))
         if(await $page.url() === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
           await courseElList.nth(0).locator('.learning_course').click()
         }
         const page1 = await itemCosePageProm
 
         // await page1.locator('#course-section').click() // 展开所有课程
-        await page1.getByRole('checkbox').check() // 筛选未完成课程
-
-        //  TODO 获取不到元素 获取单节课元素列表
-        const lessonElList = await page.locator('a.title.ng-binding.ng-scope') // 'div.learning-activity.ng-scope[id^="learning-activity-"]'
-        const lessonCount = await lessonElList.count()
-
-        for(let i = 0; i < lessonCount; i++) {
-          setTimeout(async() => {
-            await lessonElList.nth(i).click()
-          }, 1000)
+        // const defaultExpandedValue = await page.getAttribute('#course-section', 'default-expanded')
+        // if(defaultExpandedValue)
+        if(await page1.locator('#course-section span').textContent() === '全部展开'){
+          await page1.locator('#course-section').click()
         }
+        // 获取所有课程时间较长，需等待一段时间
+        setTimeout(async ()=> {
+          // await page1.getByRole('checkbox').check() // 筛选未完成课程
 
-        return {
-          msg: '刷课中！',
-          code: 1
-        }
+
+          //  TODO 获取不到元素 获取单节课元素列表
+          const lessonElList = await page1.locator('div.learning-activity.ng-scope[id^="learning-activity-"]') // 'div.learning-activity.ng-scope[id^="learning-activity-"]' // a.title.ng-binding.ng-scope
+          const lessonCount = await lessonElList.count()
+
+          await lessonElList.nth(0).click()
+          
+
+          page1.on('framenavigated', async (frame) => {
+            const mynewURL = await frame.url()
+            const currentUrl = await page1.url()
+
+            if(mynewURL === currentUrl && currentUrl.includes('https://lms.ouchn.cn/course')) {
+              const buttonSelector = 'button.next-btn.ivu-btn.ivu-btn-default';
+              await page1.waitForSelector(buttonSelector);
+
+              setTimeout(async () => {
+                const nextBtn = await page1.$(buttonSelector)
+                if(nextBtn) {
+                  nextBtn.click()
+                }
+              }, 1000)
+             
+            }
+          })
+          // for(let i = 0; i < lessonCount; i++) {
+          //   setTimeout(async() => {
+          //     await lessonElList.nth(i).click()
+          //     await page1.getByRole('link', { name: ' 返回课程' }).click()
+          //   }, 1000)
+          // }
+
+          return {
+            msg: '刷课中！',
+            code: 1
+          }
+        }, 15000)
+
         // 获取当前页所有
         // return { courseElList, courseListInfo }
       }

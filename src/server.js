@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-const timeout = require('connect-timeout')
 
 const { chromium } = require('playwright')
 const path = require('path')
