@@ -32,7 +32,10 @@ const startCourse = async ($page, courseElList, link) => {
         // }
         const itemCosePageProm = $page.waitForEvent('popup')
         // console.log(await courseElList.nth(0))
+        // 点击一门课程（进入选中的课程列表）
         if(await $page.url() === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
+          // const expandSelector = '.learning_course'
+          // const expandXPath = await $page.locator(expandSelector)
           await courseElList.nth(0).locator('.learning_course').click()
         }
         const page1 = await itemCosePageProm
@@ -48,8 +51,9 @@ const startCourse = async ($page, courseElList, link) => {
           // await page1.getByRole('checkbox').check() // 筛选未完成课程
 
 
-          //  TODO 获取不到元素 获取单节课元素列表
-          const lessonElList = await page1.locator('a.title.ng-binding.ng-scope') // 'div.learning-activity.ng-scope[id^="learning-activity-"]' // a.title.ng-binding.ng-scope
+          //  TODO 获取单节课元素列表(未开始或学习一部分的课)
+          const lessonElList = await page1.locator('div.completeness.none, div.completeness.part')
+          // const lessonElList = await page1.locator('a.title.ng-binding.ng-scope') // 'div.learning-activity.ng-scope[id^="learning-activity-"]' // a.title.ng-binding.ng-scope
           const lessonCount = await lessonElList.count()
 
           // await lessonElList.nth(0).click()
@@ -91,7 +95,7 @@ const startCourse = async ($page, courseElList, link) => {
           // })
 
           const currentUrl = await page1.url()
-          for(let i = 120; i < lessonCount; i++) {
+          for(let i = 0; i < lessonCount; i++) {
             // setTimeout(async() => {
             //   await page1.waitForURL(currentUrl)
             //   if(currentUrl.includes('https://lms.ouchn.cn/course') && !currentUrl.includes('learning-activity')) {
@@ -124,7 +128,7 @@ const startCourse = async ($page, courseElList, link) => {
             await backButton.click();
         
             // 等待页面导航完成
-            await page1.waitForNavigation({ timeout: 5000 });
+            await page1.waitForNavigation({ timeout: 15000 });
           }
 
           return {

@@ -41,9 +41,49 @@ const { chromium } = require('playwright');
   await context.close();
   await browser.close();
 })();
+const { chromium } = require('playwright');
 
-await page.locator('#course-section').click();
-await page.locator('#learning-activity-60000967909 div').filter({ hasText: '音视频教材 | 会话讲析 影片长度 00:52:07 未完成完成指标：需累积观看 80%(含)以上' }).first().click();
-await page.getByRole('link', { name: ' 返回课程' }).click();
-await page.locator('#learning-activity-60000967911 div').filter({ hasText: '页面 | 短文听读 未完成完成指标：查看页面' }).first().click();
-await page.getByRole('link', { name: ' 返回课程' }).click();
+(async () => {
+  const browser = await chromium.launch({
+    channel: 'msedge',
+    headless: false
+  });
+  const context = await browser.newContext({
+    colorScheme: 'dark',
+    viewport: {
+      height: 600,
+      width: 800
+    }
+  });
+  await page.getByPlaceholder('请输入登录名').click();
+  await page.getByPlaceholder('请输入登录名').fill('2241001208072');
+  await page.getByPlaceholder('请输入登录密码').click();
+  await page.getByPlaceholder('请输入登录密码').fill('\t Ouchn@2021');
+  await page.getByPlaceholder('请输入验证码').click();
+  await page.getByPlaceholder('请输入验证码').fill('0079');
+  await page.getByPlaceholder('请输入验证码').press('Enter');
+  await page.goto('https://iam.pt.ouchn.cn/am/UI/Login');
+  await page.getByRole('link', { name: '返回至登录' }).click();
+  await page.getByPlaceholder('请输入登录名').click();
+  await page.getByPlaceholder('请输入登录名').fill('2241001208072');
+  await page.getByPlaceholder('请输入登录密码').click();
+  await page.getByPlaceholder('请输入登录密码').fill('Ouchn@2021');
+  await page.getByPlaceholder('请输入验证码').click();
+  await page.getByPlaceholder('请输入验证码').fill('8550');
+  await page.getByPlaceholder('请输入验证码').press('Enter');
+  await page.getByText('已学课程').click();
+  const page1Promise = page.waitForEvent('popup');
+  await page.getByText('管理英语3').click();
+  const page1 = await page1Promise;
+  await page1.locator('#course-section').click();
+  await page1.locator('video').click();
+  await page1.getByRole('button', { name: '' }).click();
+  await page1.locator('.mvp-controls-left-area').click();
+  await page1.locator('.mvp-progress-holder').click();
+  await page1.locator('.mvp-progress-control').click();
+  await page1.getByRole('button', { name: '' }).click();
+
+  // ---------------------
+  await context.close();
+  await browser.close();
+})();

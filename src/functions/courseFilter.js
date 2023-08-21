@@ -9,13 +9,9 @@ const courseList = async ($page, link) => {
       const currentUrl = await $page.url()
       // console.log('currentUrl,page=>', $page)
       if(await $page.url() === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
-        // 检查是否有弹框，有则关闭
-        const closeSelector = 'div.ouchnPc_index_advertisement > img.cloneImg'
+        // 检查是否有弹框，有则关闭 
+        const closeSelector = 'div.ouchnPc_index_advertisement > img.cloneImg' // "//div[contains(@class, 'ouchnPc_index_advertisement')]//img[contains(@class, 'cloneImg')]" //'div.ouchnPc_index_advertisement > img.cloneImg'
         const nodeClose = await $page.locator(closeSelector)
-        // await nodeClose.waitFor()
-        // if(nodeClose) {
-        //   await $page.click(closeSelector)
-        // }
 
         try {
           // 使用waitFor方法等待元素可见、可用和稳定
