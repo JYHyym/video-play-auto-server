@@ -11,11 +11,23 @@ const courseList = async ($page, link) => {
       if(await $page.url() === 'https://menhu.pt.ouchn.cn/site/ouchnPc/index') {
         // 检查是否有弹框，有则关闭
         const closeSelector = 'div.ouchnPc_index_advertisement > img.cloneImg'
-        const nodeClose = await $page.$(closeSelector)
-        if(nodeClose) {
-          await $page.click(closeSelector)
-        }
+        const nodeClose = await $page.locator(closeSelector)
+        // await nodeClose.waitFor()
+        // if(nodeClose) {
+        //   await $page.click(closeSelector)
+        // }
 
+        try {
+          // 使用waitFor方法等待元素可见、可用和稳定
+          await nodeClose.waitFor({ state: 'visible', timeout: 5000 })
+          // await nodeClose.waitForElementState('enabled')
+          // await $page.waitForLoadState()
+      
+          // 执行点击操作
+          await nodeClose.click()
+        } catch (error) {
+          console.log('元素不存在或操作失败')
+        }
         // await courseProcessFilter(page, page1Promise, link)
         // 点击某节课程，跳转页面
         // await page.locator('li').filter({ hasText: '管理思想史 课程代码：53720 | 课程状态： 正在进行 | 开课时间： 2023年02月05日 选课学生：704 人 | 资料：0 个 | 形考作业：3/3' }).getByRole('progressbar').click();

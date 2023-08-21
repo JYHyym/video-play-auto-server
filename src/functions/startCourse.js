@@ -49,35 +49,83 @@ const startCourse = async ($page, courseElList, link) => {
 
 
           //  TODO 获取不到元素 获取单节课元素列表
-          const lessonElList = await page1.locator('div.learning-activity.ng-scope[id^="learning-activity-"]') // 'div.learning-activity.ng-scope[id^="learning-activity-"]' // a.title.ng-binding.ng-scope
+          const lessonElList = await page1.locator('a.title.ng-binding.ng-scope') // 'div.learning-activity.ng-scope[id^="learning-activity-"]' // a.title.ng-binding.ng-scope
           const lessonCount = await lessonElList.count()
 
-          await lessonElList.nth(0).click()
+          // await lessonElList.nth(0).click()
           
 
-          page1.on('framenavigated', async (frame) => {
-            const mynewURL = await frame.url()
-            const currentUrl = await page1.url()
+          // page1.on('framenavigated', async (frame) => {
+          //   const mynewURL = await frame.url()
+          //   const currentUrl = await page1.url()
 
-            if(mynewURL === currentUrl && currentUrl.includes('https://lms.ouchn.cn/course')) {
-              const buttonSelector = 'button.next-btn.ivu-btn.ivu-btn-default';
-              await page1.waitForSelector(buttonSelector);
+          //   if(mynewURL === currentUrl && currentUrl.includes('https://lms.ouchn.cn/course')) {
+          //     // 等待页面导航完成
+          //     await frame.waitForURL(currentUrl)
+          //     // 执行鼠标滚轮滚动到底部
+          //     await page1.evaluate(() => {
+          //       window.scrollTo(0, document.body.scrollHeight)
+          //     })
 
-              setTimeout(async () => {
-                const nextBtn = await page1.$(buttonSelector)
-                if(nextBtn) {
-                  nextBtn.click()
-                }
-              }, 1000)
+          //     const buttonSelector = 'button.next-btn.ivu-btn.ivu-btn-default'
+          //     const buttonNode = await page1.locator(buttonSelector)
+
+          //     try {
+          //       setTimeout(async () => {
+          //         await buttonNode.waitFor({ state: 'visible', timeout: 5000 })
+          //         // await buttonNode.waitForElementState('enabled')
+          //         await buttonNode.click()
+          //       }, 3000)
+          //     } catch (error) {
+                
+          //     }
+
+          //     // setTimeout(async () => {
+          //     //   const nextBtn = await page1.$(buttonSelector)
+          //     //   if(nextBtn) {
+          //     //     nextBtn.click()
+          //     //   }
+          //     // }, 3000)
              
-            }
-          })
-          // for(let i = 0; i < lessonCount; i++) {
-          //   setTimeout(async() => {
-          //     await lessonElList.nth(i).click()
-          //     await page1.getByRole('link', { name: ' 返回课程' }).click()
-          //   }, 1000)
-          // }
+          //   }
+          // })
+
+          const currentUrl = await page1.url()
+          for(let i = 120; i < lessonCount; i++) {
+            // setTimeout(async() => {
+            //   await page1.waitForURL(currentUrl)
+            //   if(currentUrl.includes('https://lms.ouchn.cn/course') && !currentUrl.includes('learning-activity')) {
+            //     await lessonElList.nth(i).click()
+            //   }
+            //   // 执行鼠标滚轮滚动到底部
+            //   await page1.evaluate(() => {
+            //     window.scrollTo(0, document.body.scrollHeight)
+            //   })
+
+            //   await page1.getByRole('link', { name: ' 返回课程' }).click()
+            // }, 3000)
+            
+            const element = await lessonElList.nth(i)
+            await element.click()
+        
+            // 等待页面导航完成
+            // await page1.waitForNavigation();
+            await page1.waitForLoadState('networkidle')
+        
+            // 执行鼠标滚轮滚动到底部
+            await page1.evaluate(() => {
+              window.scrollTo(0, document.body.scrollHeight);
+            });
+            
+            // 等待5秒
+            await page1.waitForTimeout(5000)
+            // 获取按钮内容为"返回课程"的元素并点击
+            const backButton = await page1.getByRole('link', { name: ' 返回课程' })
+            await backButton.click();
+        
+            // 等待页面导航完成
+            await page1.waitForNavigation({ timeout: 5000 });
+          }
 
           return {
             msg: '刷课中！',

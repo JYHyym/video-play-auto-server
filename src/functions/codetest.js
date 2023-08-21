@@ -41,3 +41,9 @@ const { chromium } = require('playwright');
   await context.close();
   await browser.close();
 })();
+
+await page.locator('#course-section').click();
+await page.locator('#learning-activity-60000967909 div').filter({ hasText: '音视频教材 | 会话讲析 影片长度 00:52:07 未完成完成指标：需累积观看 80%(含)以上' }).first().click();
+await page.getByRole('link', { name: ' 返回课程' }).click();
+await page.locator('#learning-activity-60000967911 div').filter({ hasText: '页面 | 短文听读 未完成完成指标：查看页面' }).first().click();
+await page.getByRole('link', { name: ' 返回课程' }).click();
