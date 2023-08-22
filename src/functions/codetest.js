@@ -42,8 +42,33 @@ const { chromium } = require('playwright');
   await browser.close();
 })();
 
-await page.locator('#course-section').click();
-await page.locator('#learning-activity-60000967909 div').filter({ hasText: '音视频教材 | 会话讲析 影片长度 00:52:07 未完成完成指标：需累积观看 80%(含)以上' }).first().click();
-await page.getByRole('link', { name: ' 返回课程' }).click();
-await page.locator('#learning-activity-60000967911 div').filter({ hasText: '页面 | 短文听读 未完成完成指标：查看页面' }).first().click();
-await page.getByRole('link', { name: ' 返回课程' }).click();
+
+const { chromium } = require('playwright');
+
+(async () => {
+  const browser = await chromium.launch({
+    headless: false
+  });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto('http://crjy.wencaischool.net/smxzyjsxy/console/');
+  await page.getByText('登 录').click();
+  await page.getByPlaceholder('用户名').click();
+  await page.getByPlaceholder('用户名').fill('410303197808230524');
+  await page.getByPlaceholder('密码').click();
+  await page.getByPlaceholder('密码').fill('230524');
+  await page.getByRole('button', { name: '登录' }).click();
+  await page.getByText('确定').click();
+  await page.getByRole('link', { name: '在线课程学习' }).click();
+  const page1Promise = page.waitForEvent('popup');
+  await page.frameLocator('iframe >> nth=1').getByText('开始学习').first().click();
+  const page1 = await page1Promise;
+  await page1.frameLocator('iframe[name="w_main"]').getByText('第一章 绪论 (2/2)').click();
+  await page1.frameLocator('iframe[name="w_main"]').getByRole('link', { name: '绪论1' }).click();
+  await page1.getByText('©无锡柠檬科技服务有限公司 苏ICP备19043213号-1').click();
+  await page1.frameLocator('iframe[name="w_main"]').getByText('应耗能量 0绪论1').click();
+
+  // ---------------------
+  await context.close();
+  await browser.close();
+})();

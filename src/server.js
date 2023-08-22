@@ -6,14 +6,15 @@ const path = require('path')
 
 let $browser, $page
 (async () => {
-  
   $browser = await chromium.launchPersistentContext(path.resolve('.../../userDataDir'), { 
     headless: false,
     slowMo: 500,
     viewport: {
       width: 1920,
       height: 1080,
-    } // 设置宽高
+    }, // 设置宽高
+    // args:  ['--no-sandbox', '--disable-setuid-sandbox']
+    // args: ['--enable-features=VideoPlaybackQuality']
     // executablePath: executablePath ||  '/Users/yym/Desktop/Google Chrome.app/Contents/MacOS/Google Chrome'
     // executablePath: executablePath || 'C:/Users/cnic/AppData/Local/Google/Chrome/Application/chrome.exe' 
   });
