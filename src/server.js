@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-const { chromium } = require('playwright')
+const { chromium } = require('playwright') 
 const path = require('path')
 
 let $browser, $page
@@ -9,32 +9,33 @@ let $browser, $page
   $browser = await chromium.launchPersistentContext(path.resolve('.../../userDataDir'), { 
     headless: false,
     slowMo: 500,
-    viewport: {
-      width: 1920,
-      height: 1080,
-    }, // 设置宽高
-    // args:  ['--no-sandbox', '--disable-setuid-sandbox']
-    // args: ['--enable-features=VideoPlaybackQuality']
+    channel: 'msedge',
+    // 默认开启控制台。不然无法自动播放视频
+    devtools: true
+    // viewport: {
+    //   width: 1920,
+    //   height: 1080,
+    // } // 设置宽高
     // executablePath: executablePath ||  '/Users/yym/Desktop/Google Chrome.app/Contents/MacOS/Google Chrome'
     // executablePath: executablePath || 'C:/Users/cnic/AppData/Local/Google/Chrome/Application/chrome.exe' 
   });
   
   $page = $browser.pages()[0]
   // TODO 判断是否跳转到新登录页
-  $page.on('framenavigated', async (frame) => {
-    const mynewURL = await frame.url()
-    const currentUrl = await $page.url()
+  // $page.on('framenavigated', async (frame) => {
+  //   const mynewURL = await frame.url()
+  //   const currentUrl = await $page.url()
 
-    if(currentUrl.includes('https://iam.pt.ouchn.cn/am/UI/Login')) {
-      await $page.getByPlaceholder('请输入登录名').click();
-      await $page.getByPlaceholder('请输入登录名').fill(account);
-      await $page.getByPlaceholder('请输入登录密码').click();
-      await $page.getByPlaceholder('请输入登录密码').fill(psw);
-      await $page.getByPlaceholder('请输入验证码').click();
-      await $page.getByPlaceholder('请输入验证码').fill('');
-      await $page.getByRole('button', { name: '登录' }).click()
-    }
-  })
+  //   if(currentUrl.includes('https://iam.pt.ouchn.cn/am/UI/Login')) {
+  //     await $page.getByPlaceholder('请输入登录名').click();
+  //     await $page.getByPlaceholder('请输入登录名').fill(account);
+  //     await $page.getByPlaceholder('请输入登录密码').click();
+  //     await $page.getByPlaceholder('请输入登录密码').fill(psw);
+  //     await $page.getByPlaceholder('请输入验证码').click();
+  //     await $page.getByPlaceholder('请输入验证码').fill('');
+  //     await $page.getByRole('button', { name: '登录' }).click()
+  //   }
+  // })
 })() 
 
 const { login: loginFun } = require('./functions/login') // 导入方法

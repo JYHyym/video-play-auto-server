@@ -41,32 +41,47 @@ const { chromium } = require('playwright');
   await context.close();
   await browser.close();
 })();
-
-
 const { chromium } = require('playwright');
 
 (async () => {
   const browser = await chromium.launch({
+    channel: 'msedge',
     headless: false
   });
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  await page.goto('http://crjy.wencaischool.net/smxzyjsxy/console/');
-  await page.getByText('登 录').click();
-  await page.getByPlaceholder('用户名').click();
-  await page.getByPlaceholder('用户名').fill('410303197808230524');
-  await page.getByPlaceholder('密码').click();
-  await page.getByPlaceholder('密码').fill('230524');
-  await page.getByRole('button', { name: '登录' }).click();
-  await page.getByText('确定').click();
-  await page.getByRole('link', { name: '在线课程学习' }).click();
+  const context = await browser.newContext({
+    colorScheme: 'dark',
+    viewport: {
+      height: 600,
+      width: 800
+    }
+  });
+  await page.getByPlaceholder('请输入登录名').click();
+  await page.getByPlaceholder('请输入登录名').fill('2241001208072');
+  await page.getByPlaceholder('请输入登录密码').click();
+  await page.getByPlaceholder('请输入登录密码').fill('\t Ouchn@2021');
+  await page.getByPlaceholder('请输入验证码').click();
+  await page.getByPlaceholder('请输入验证码').fill('0079');
+  await page.getByPlaceholder('请输入验证码').press('Enter');
+  await page.goto('https://iam.pt.ouchn.cn/am/UI/Login');
+  await page.getByRole('link', { name: '返回至登录' }).click();
+  await page.getByPlaceholder('请输入登录名').click();
+  await page.getByPlaceholder('请输入登录名').fill('2241001208072');
+  await page.getByPlaceholder('请输入登录密码').click();
+  await page.getByPlaceholder('请输入登录密码').fill('Ouchn@2021');
+  await page.getByPlaceholder('请输入验证码').click();
+  await page.getByPlaceholder('请输入验证码').fill('8550');
+  await page.getByPlaceholder('请输入验证码').press('Enter');
+  await page.getByText('已学课程').click();
   const page1Promise = page.waitForEvent('popup');
-  await page.frameLocator('iframe >> nth=1').getByText('开始学习').first().click();
+  await page.getByText('管理英语3').click();
   const page1 = await page1Promise;
-  await page1.frameLocator('iframe[name="w_main"]').getByText('第一章 绪论 (2/2)').click();
-  await page1.frameLocator('iframe[name="w_main"]').getByRole('link', { name: '绪论1' }).click();
-  await page1.getByText('©无锡柠檬科技服务有限公司 苏ICP备19043213号-1').click();
-  await page1.frameLocator('iframe[name="w_main"]').getByText('应耗能量 0绪论1').click();
+  await page1.locator('#course-section').click();
+  await page1.locator('video').click();
+  await page1.getByRole('button', { name: '' }).click();
+  await page1.locator('.mvp-controls-left-area').click();
+  await page1.locator('.mvp-progress-holder').click();
+  await page1.locator('.mvp-progress-control').click();
+  await page1.getByRole('button', { name: '' }).click();
 
   // ---------------------
   await context.close();

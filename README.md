@@ -5,3 +5,6 @@
 ## yarn install
 ## 切换到src路径
 ## node server.js
+
+##### 使用msedge打开codegen的指令
+npx playwright open --viewport-size=800,600 --color-scheme=dark --browser=chromium --channel=msedge https://menhu.pt.ouchn.cn/site/ouchnPc/index
