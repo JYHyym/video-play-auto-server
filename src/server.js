@@ -6,7 +6,6 @@ const path = require('path')
 
 let $browser, $page
 (async () => {
-  
   $browser = await chromium.launchPersistentContext(path.resolve('.../../userDataDir'), { 
     headless: false,
     slowMo: 500,
@@ -127,7 +126,7 @@ app.post('/api/startCourse', (req, res) => {
     }
     // console.log(typeof postParams, '---params', body, '=====', link, account, psw);
     try { 
-      const results = await startCourse($page, courseElList, link) 
+      const results = await startCourse($page, courseElList, link, account, psw) 
       console.log('开始刷课res: ===>', results)
       res.send({
         link,
