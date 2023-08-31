@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-
+const multer = require('multer');
 const { chromium } = require('playwright') 
 const path = require('path')
 
@@ -99,6 +99,44 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, './root/ctc_service/data/data_image/'); // 上传到服务器的根路径
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  }
+});
+const upload = multer({ storage });
+
+// 上传验证码
+app.post('/api/upload_code', upload.single('image'), (req, res) => {
+  //读取文件路径(uploads/文件夹下面的新建的图片地址)
+  console.log(req.file);
+  //这里的req.body是经过uploadFile中间件进行处理后的,包含了表单中所有的提交内容
+  console.log(req.body);
+  res.send("文件上传成功");
+  // fs.readFile(req.file.path, (err, data) => {
+  //     //如果读取失败
+  //     if (err) { return res.send('上传失败') }
+  //     //如果读取成功
+  //     //声明图片名字为时间戳和随机数拼接成的，尽量确保唯一性
+  //     let time = Date.now() + parseInt(Math.random() * 999) + parseInt(Math.random() * 2222);
+  //     //拓展名
+  //     let extname = req.file.mimetype.split('/')[1]
+  //         //拼接成图片名
+  //     let keepname = time + '.' + extname
+  //         //三个参数
+  //         //1.图片的绝对路径
+  //         //2.写入的内容
+  //         //3.回调函数
+  //     fs.writeFile(path.join(__basename, '/public/img/' + keepname), data, (err) => {
+  //         if (err) { return res.send('写入失败') }
+  //         res.send({ err: 0, msg: '上传ok', data: '/public/img/' + keepname })
+  //     });
+  // });
+})
 
 // 开始刷课
 app.post('/api/startCourse', (req, res) => {

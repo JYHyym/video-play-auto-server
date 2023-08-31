@@ -71,7 +71,7 @@ const startCourse = async ($page, courseElList, link, account, psw) => {
               // 等待页面导航完成
               // await page1.waitForNavigation();
               await page1.waitForLoadState('networkidle')
-              await page1.waitForTimeout(5000) 
+              await page1.waitForTimeout(3000) 
           
               // 执行鼠标滚轮滚动到底部 (没有生效)
               await page1.evaluate(() => {

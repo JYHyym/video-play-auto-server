@@ -1,8 +1,48 @@
 const fs = require('fs')
+const path = require('path')
+const axios = require('axios')
 const students = require('../data/students')
 const courses = require('./courses')
 const { courseList } = require('./courseFilter')
 let courseElList, courseListInfo
+
+
+const data = {  
+  image: '/root/ctc_service/data/data_image/001.png'  
+}
+// 向模型发起请求获取验证码 
+const getModelCode = async (path) => {
+  try {
+    const response = await axios({
+      method: 'post',
+      url: 'http://39.105.115.214:8181/ctc_model/predict',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: JSON.stringify(data)
+    });
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+// 将验证码保存到服务器根路径
+const saveImageToServer = async (codePath, picName) => {
+  const sourceFilePath = codePath;
+  const destinationFilePath = '/root/ctc_service/data/data_image/'+ picName;
+  try {
+    await fs.promises.copyFile(sourceFilePath, destinationFilePath);
+    console.log('文件保存成功！');
+    return {code: 1, path: destinationFilePath};
+  } catch (err) {
+    console.error('文件保存失败：', err);
+    throw err;
+  }
+}
+
 
 const login = async ($page, link, account, psw, executablePath) => {
     switch (link) {
@@ -18,16 +58,35 @@ const login = async ($page, link, account, psw, executablePath) => {
           await $page.getByPlaceholder('请输入登录密码').click();
           await $page.getByPlaceholder('请输入登录密码').fill(psw);
           await $page.getByPlaceholder('请输入验证码').click();
-          await $page.getByPlaceholder('请输入验证码').fill('');
-          await $page.getByRole('button', { name: '登录' }).click();
-          // console.log(newURL, '1111')
 
+          // 截图并上传验证码，获取code数字
+          const nowTime = new Date().getTime()
+          const codePath = `../pic/gk_code_${account}_${nowTime}.png`
+          const picName = `gk_code_${account}_${nowTime}.png`
+          await $page.locator('#kaptchaImage').screenshot({ path: codePath });
+          // const resCode = await uploadCode(codePath)
+          try {
+            const result = await saveImageToServer(codePath, picName);
+            console.log('res上传图片', result)
+            if(result.code === 1){
+              // 从模型获取验证码
+              const codeRes = await getModelCode(result.path)
+              if(codeRes.result){
+                await $page.getByPlaceholder('请输入验证码').fill(codeRes.data.result);
+                await $page.getByRole('button', { name: '登录' }).click();
+              }
+            }
+            
+          } catch (error) {
+            console.error(error)
+          }
+          
           return new Promise((resolve, reject) => {
             $page.on('framenavigated', async (frame) => {
               const mynewURL = await frame.url();
               const currentUrl = await $page.url()
-  
-              if(mynewURL.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index') && currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
+              // mynewURL.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index') &&
+              if(currentUrl.includes('https://menhu.pt.ouchn.cn/site/ouchnPc/index')) {
                 const res = await courseList($page, link)
                 courseElList = res.courseElList
                 courseListInfo = res.courseListInfo
@@ -37,6 +96,13 @@ const login = async ($page, link, account, psw, executablePath) => {
                   courseListInfo,
                   msg: '账号登录成功！',
                   code: 1
+                })
+              } else {
+                resolve({
+                  courseElList: [],
+                  courseListInfo: [],
+                  msg: '账号登录失败，请重试！',
+                  code: 0
                 })
               } 
             })
