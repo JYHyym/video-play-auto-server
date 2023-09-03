@@ -36,6 +36,7 @@ const startCourse = async ($page, courseElList, courseListInfo, link, account, p
           coursePages[courseIndex] = await itemCosePageProm
           // 等待页面加载...
           await coursePages[courseIndex].waitForLoadState('domcontentloaded')
+          await coursePages[courseIndex].waitForTimeout(4000) 
 
           // 判断点击去学习是否会跳转到登录页
           try {
@@ -64,13 +65,15 @@ const startCourse = async ($page, courseElList, courseListInfo, link, account, p
 
           // 等待页面加载...
           await coursePages[courseIndex].waitForLoadState('domcontentloaded')
-          // await page1.waitForTimeout(4000) 
+          await coursePages[courseIndex].waitForTimeout(4000) 
 
           try {
             // // 获取当前学科列表(未开始或学习一部分的课)
             let lessonElList = await coursePages[courseIndex].locator('div.completeness.none, div.completeness.part')
             let lessonCount = await lessonElList.count()
-            let lessonTitle = await coursePages[courseIndex].locator('div.learning-activity.ng-scope div.completeness.none, div.learning-activity.ng-scope div.completeness.part')
+            let lessonTitle = await coursePages[courseIndex].locator('div.learning-activity.ng-scope')
+
+            // let lessonTitle = await coursePages[courseIndex].locator('div.learning-activity.ng-scope div.completeness.none, div.learning-activity.ng-scope div.completeness.part')
             const lessonTitleCount = await lessonTitle.count()
 
             console.log('====>',lessonTitleCount,  await lessonTitle.nth(0))
@@ -85,12 +88,15 @@ const startCourse = async ($page, courseElList, courseListInfo, link, account, p
                   await coursePages[courseIndex].waitForLoadState('domcontentloaded')
                   lessonElList = await coursePages[courseIndex].locator('div.completeness.none, div.completeness.part')
                   // lessonCount = await lessonElList.count()
-                  lessonTitle = await coursePages[courseIndex].locator('div.learning-activity.ng-scope div.completeness.none, div.learning-activity.ng-scope div.completeness.part')
+                  lessonTitle = await coursePages[courseIndex].locator('div.learning-activity.ng-scope');
+
+                  // lessonTitle = await coursePages[courseIndex].locator('div.learning-activity.ng-scope div.completeness.none, div.learning-activity.ng-scope div.completeness.part')
                   
                 }
 
                 const element = await lessonElList.nth(cantViewCount) // 去掉讨论课和测试课
-                const currentTitle = await lessonTitle[cantViewCount].innerText() // 课程名
+                // TODO 获取不到标题名，待解决
+                const currentTitle = await lessonTitle.nth(cantViewCount).locator('a.title.ng-binding.ng-scope').textContent() // 课程名
                 await element.click()
 
                 if(currentTitle.includes('讨论') || currentTitle.includes('测试')) {

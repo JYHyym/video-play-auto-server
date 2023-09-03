@@ -22,12 +22,14 @@ const courseList = async ($page, link) => {
         } catch (error) {
           console.log('无弹框。')
         }
-        
+
         await $page.waitForLoadState('domcontentloaded')
 
         // 过滤学习进度不为100%的课程
         // TODO 现没有当前学期课程，先选择已学课程，以后需删掉下面的内容
         await $page.getByText('已学课程').click()
+        await $page.waitForTimeout(5000)
+
         await $page.waitForLoadState('domcontentloaded')
         
         const courseElList = await $page.locator('li')
