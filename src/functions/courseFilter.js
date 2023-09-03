@@ -16,23 +16,20 @@ const courseList = async ($page, link) => {
         try {
           // 使用waitFor方法等待元素可见、可用和稳定
           await nodeClose.waitFor({ state: 'visible', timeout: 5000 })
-          // await nodeClose.waitForElementState('enabled')
-          // await $page.waitForLoadState()
-      
+          
           // 执行点击操作
           await nodeClose.click()
         } catch (error) {
-          console.log('元素不存在或操作失败')
+          console.log('无弹框。')
         }
-        // await courseProcessFilter(page, page1Promise, link)
-        // 点击某节课程，跳转页面
-        // await page.locator('li').filter({ hasText: '管理思想史 课程代码：53720 | 课程状态： 正在进行 | 开课时间： 2023年02月05日 选课学生：704 人 | 资料：0 个 | 形考作业：3/3' }).getByRole('progressbar').click();
-        // const page1 = await page1Promise;
-        // await page1.getByRole('checkbox').check();
+        
+        await $page.waitForLoadState('domcontentloaded')
 
         // 过滤学习进度不为100%的课程
-        // 现没有当前学期课程，先选择已学课程，以后需删掉下面的内容
+        // TODO 现没有当前学期课程，先选择已学课程，以后需删掉下面的内容
         await $page.getByText('已学课程').click()
+        await $page.waitForLoadState('domcontentloaded')
+        
         const courseElList = await $page.locator('li')
         .filter({ hasText: '去学习' })
         .filter({ hasNotText: '100.0%' })
@@ -54,7 +51,7 @@ const courseList = async ($page, link) => {
           courseListInfo.push({
             courseName: cnTextContent.trim().replace(/\n/g, ''),
             // process: proTextContent.trim().replace(/\n/g, '')
-            process: '89.02%'
+            process: '-- %'
           })
         }
         return { courseElList, courseListInfo }

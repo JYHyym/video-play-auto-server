@@ -6,12 +6,9 @@ const courses = require('./courses')
 const { courseList } = require('./courseFilter')
 let courseElList, courseListInfo
 
-
-const data = {  
-  image: '/root/ctc_service/data/data_image/001.png'  
-}
 // 向模型发起请求获取验证码 
 const getModelCode = async (path) => {
+  console.log('验证码url:', path)
   try {
     const response = await axios({
       method: 'post',
@@ -19,18 +16,19 @@ const getModelCode = async (path) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      data: JSON.stringify(data)
+      data: { image: path }
     });
-    console.log(response.data);
+    console.log('向模型发起请求获取验证码:',response.data, '图片路径:', path);
     return response.data;
   } catch (error) {
-    console.error(error);
+    console.log('向模型发起请求获取验证码失败：', error);
     throw error;
   }
 }
 
 // 将验证码保存到服务器根路径
 const saveImageToServer = async (codePath, picName) => {
+  console.log('将验证码保存到服务器根路径方法')
   const sourceFilePath = codePath;
   const destinationFilePath = '/root/ctc_service/data/data_image/'+ picName;
   try {
@@ -48,7 +46,7 @@ const login = async ($page, link, account, psw, executablePath) => {
     switch (link) {
       // 国开
       case 'https://menhu.pt.ouchn.cn/':
-        
+        console.log('登录功能')
         await $page.goto('https://menhu.pt.ouchn.cn/site/ouchnPc/index');
 
         const newURL = await $page.url()
@@ -59,6 +57,7 @@ const login = async ($page, link, account, psw, executablePath) => {
           await $page.getByPlaceholder('请输入登录密码').fill(psw);
           await $page.getByPlaceholder('请输入验证码').click();
 
+          console.log('截图并上传验证码，获取code数字')
           // 截图并上传验证码，获取code数字
           const nowTime = new Date().getTime()
           const codePath = `../pic/gk_code_${account}_${nowTime}.png`
@@ -70,15 +69,26 @@ const login = async ($page, link, account, psw, executablePath) => {
             console.log('res上传图片', result)
             if(result.code === 1){
               // 从模型获取验证码
-              const codeRes = await getModelCode(result.path)
+              const codeRes = await getModelCode(`http://123.56.227.26/${picName}`)
+              console.log('从模型获取的验证码信息:', codeRes)
               if(codeRes.result){
-                await $page.getByPlaceholder('请输入验证码').fill(codeRes.data.result);
+                await $page.getByPlaceholder('请输入验证码').fill(codeRes.result);
                 await $page.getByRole('button', { name: '登录' }).click();
+                console.log('点击登录按钮')
               }
             }
             
           } catch (error) {
-            console.error(error)
+            console.error('error验证码处理出错:', error)
+            return new Promise((resolve, reject) => {
+              resolve({
+                error,
+                courseElList: [],
+                courseListInfo: [],
+                msg: '验证码处理出错，账号登录失败，请重试！',
+                code: 0
+              })
+            })
           }
           
           return new Promise((resolve, reject) => {
